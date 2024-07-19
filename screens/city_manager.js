@@ -8,12 +8,26 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import PlusIcon from '../assets/plus.svg';
+import CheckBox from '@react-native-community/checkbox';
 
-const CityManager = ({navigation, route}) => {
+const CityManager = ({navigation, route, isDelete, toggleCheckBox}) => {
   const {weatherData} = route.params;
   const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+  const [checkBoxStates, setCheckBoxStates] = useState(
+    Array(weatherData.length).fill(false),
+  );
+  const handleCheckBoxChange = (index, newValue) => {
+    const updatedCheckBoxStates = [...checkBoxStates];
+    updatedCheckBoxStates[index] = newValue;
+    setCheckBoxStates(updatedCheckBoxStates);
+  };
+  useEffect(() => {
+    if (isDelete) {
+      setCheckBoxStates(Array(weatherData.length).fill(toggleCheckBox));
+    }
+  }, [toggleCheckBox, isDelete, weatherData.length]);
   return (
     <View style={styles.mainContainer}>
       <ScrollView>
@@ -25,21 +39,42 @@ const CityManager = ({navigation, route}) => {
                   <Text style={styles.innerText}>{city.name}</Text>
                   <Text style={styles.subText}>{city.description}</Text>
                 </View>
-                <View>
-                  <Text style={styles.innerText}>
-                    {city.kelvinToCelsius()} °
-                  </Text>
+                {!isDelete ? (
+                  <View>
+                    <Text style={styles.innerText}>
+                      {city.kelvinToCelsius()} °
+                    </Text>
 
-                  <Text style={styles.subText}>{city.main}</Text>
-                </View>
+                    <Text style={styles.subText}>{city.main}</Text>
+                  </View>
+                ) : (
+                  <View key={index}>
+                    <CheckBox
+                      disabled={false}
+                      value={checkBoxStates[index]}
+                      onValueChange={newValue =>
+                        handleCheckBoxChange(index, newValue)
+                      }
+                      tintColors={{true: 'rgb(211,211,211)', false: '#fff'}}
+                    />
+                  </View>
+                )}
               </View>
             );
           })}
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.floatButton}>
-        <PlusIcon width={24} height={24} fill="#fff" />
-      </TouchableOpacity>
+      {!isDelete ? (
+        <TouchableOpacity style={styles.floatButton}>
+          <PlusIcon width={24} height={24} fill="#fff" />
+        </TouchableOpacity>
+      ) : (
+        <View style={[styles.deleteButton, windowWidth]}>
+          <TouchableOpacity>
+            <Text style={styles.subText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -84,5 +119,16 @@ const styles = StyleSheet.create({
     bottom: 20,
     right: 20,
     zIndex: 999,
+  },
+  deleteButton: {
+    zIndex: 999,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
+    backgroundColor: 'black',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

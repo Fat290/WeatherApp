@@ -6,6 +6,7 @@ import {
   View,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
+import CheckBox from '@react-native-community/checkbox';
 import {
   NavigationContainer,
   NavigationHelpersContext,
@@ -18,6 +19,8 @@ import {Text} from 'react-native-svg';
 import ListIcon from './assets/list.svg';
 import SettingIcon from './assets/setting.svg';
 import ManageIcon from './assets/note.svg';
+import CancelIcon from './assets/cancel.svg';
+import BackIcon from './assets/back.svg';
 import CityManager from './screens/city_manager';
 import Cities from './models/city';
 import {fetchWeather} from './services/fetch_weather';
@@ -26,8 +29,9 @@ import Weather from './models/weather';
 const Stack = createNativeStackNavigator();
 const App = () => {
   const [headerTitle, setHeaderTitle] = useState('');
-  const [appBarShown, setAppBarShown] = useState(true);
   const [weatherData, setWeatherData] = useState<Weather[]>([]);
+  const [isDelete, setIsDelete] = useState(false);
+  const [toggleCheckBox, setToggleCheckBox] = useState(false);
   useEffect(() => {
     const fetchAllWeather = async () => {
       try {
@@ -58,7 +62,7 @@ const App = () => {
               fontFamily: 'Lato-Regular',
               color: 'white',
             },
-            headerShown: appBarShown,
+
             headerRight: () => {
               return (
                 <View style={styles.iconContainer}>
@@ -79,31 +83,67 @@ const App = () => {
             <Home
               {...props}
               setHeaderTitle={setHeaderTitle}
-              setAppBarShown={setAppBarShown}
               weatherData={weatherData}
             />
           )}
         </Stack.Screen>
 
         <Stack.Screen
-          component={CityManager}
           name="City Manager"
-          options={{
+          options={({navigation}) => ({
+            headerTitle: isDelete ? 'Choose ' : 'CityManager',
             headerShadowVisible: false,
             headerStyle: {
               backgroundColor: 'rgba(0,0,0,0.85)',
             },
-
+            headerLeft: () => {
+              return (
+                <View>
+                  {isDelete ? (
+                    <TouchableOpacity
+                      style={{marginRight: 12}}
+                      onPress={() => setIsDelete(false)}>
+                      <CancelIcon width={20} height={20} fill="#fff" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={{marginRight: 12}}
+                      onPress={() => navigation.popToTop()}>
+                      <BackIcon width={30} height={30} fill="#fff" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            },
             headerTintColor: '#fff',
             headerRight: () => {
               return (
-                <TouchableOpacity>
-                  <ManageIcon width={20} height={20} fill="#fff" />
-                </TouchableOpacity>
+                <View>
+                  {!isDelete ? (
+                    <TouchableOpacity onPress={() => setIsDelete(true)}>
+                      <ManageIcon width={20} height={20} fill="#fff" />
+                    </TouchableOpacity>
+                  ) : (
+                    <CheckBox
+                      disabled={false}
+                      value={toggleCheckBox}
+                      onChange={() => setToggleCheckBox(true)}
+                      onValueChange={newValue => setToggleCheckBox(newValue)}
+                      tintColors={{true: 'rgb(211,211,211)', false: '#fff'}}
+                    />
+                  )}
+                </View>
               );
             },
-          }}
-        />
+          })}>
+          {props => (
+            <CityManager
+              {...props}
+              isDelete={isDelete}
+              toggleCheckBox={toggleCheckBox}
+            />
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -22,7 +22,7 @@ import MoonIcon from '../assets/moon.svg';
 import MoreInformation from '../components/more_information';
 import DailyForecast from '../components/daily_forecasts';
 
-const Home = ({setHeaderTitle, weatherData, setAppBarShown}) => {
+const Home = ({setHeaderTitle, weatherData}) => {
   const {width: windowWidth, height: windowHeight} = useWindowDimensions();
   const scrollX = useRef(new Animated.Value(0)).current;
 
